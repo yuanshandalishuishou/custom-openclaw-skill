@@ -606,7 +606,6 @@ EOF
 done
 
 # ------------------------------ 部署完成 ------------------------------
-openclaw agents list && openclaw reload && openclaw restart
 echo ""
 ok "━━━ 部署完成! ━━━"
 echo ""
@@ -616,3 +615,6 @@ echo ""
 echo "您现在可以通过纪总(enterprise-boss)使用整个专家团队。"
 echo "启动方式：向纪总发送消息，例如：“远山总想了解当前融资租赁业务的风险敞口。”"
 echo -e "${CYAN}═══ 部署结束: $(date) ═══${NC}"
+openclaw agents list 
+openclaw reload
+openclaw agent --agent enterprise-boss --message "请详细介绍你和你的团队"
