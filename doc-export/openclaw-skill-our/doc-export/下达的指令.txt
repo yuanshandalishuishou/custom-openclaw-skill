@@ -1,0 +1,80 @@
+增加“文档发送/公文导出”能力（Linux｜红头条PNG｜LO headless PDF）
+0. 适用范围
+触发时机：用户说/龙虾判定为“生成文档/导出公文/发文件下载/把上面内容整理成可下发公文”。
+对非代码内容才走公文链路；代码/数据文件保持原格式（不强行套公文）。
+1. 红头与版式（强制）
+使用 预置红头条图片：assets/red_header_bar.png（透明底，包含：发文机关标识+红色分隔线；高度固定）。
+安装/首次启用时：
+把 red_header_bar.png放到技能目录 doc-export/assets/
+在配置里记录其高度（像素→EMU换算）以便页眉顶距对齐
+Word 排版基线（少一个都不算“国标一致”）：
+纸张 A4；页边距 上3.7 / 下3.5 / 左2.8 / 右2.6 (cm)
+正文：三号（16pt）仿宋/仿宋_GB2312，首行缩进 2 字符，固定行距逼近 28pt（用“每面22行”原则做视觉校准）
+东亚字体绑定：所有 run 必须同时设 font.name与 w:eastAsia（OOXML），禁止只设西文字体名
+标题居中、适当字号（按机关现行习惯固化），主送机关（若有）、附件说明、成文日期右/按规范对齐
+产生的文件名必须安全：关于XXX的通知_YYYYMMDD_HHMMSS.docx
+2. 存盘与“三个地址”展示规则（关键：别把本地路径当HTTP链接）
+落盘到配置的本地目录：
+local_save_root: /opt/lobster_docs   （安装时可改）
+回显必须分成两块（不允许混为一谈）：
+(A) 可点击/可复制的下载链接（两条，HTTP）——URL必须完整、禁止省略截断
+内网：http://192.168.31.101:10091/dl?tok=******&pwd=******
+外网：http://81.68.248.64:10091/dl?tok=******&pwd=******
+给 Markdown 环境时可用 <a href="...">点此下载（内网）</a>；给纯文本时也把完整 URL 单独成行。
+(B) 本地路径（仅提示你去主机拷贝，不包装成 http://）
+本地存盘：/opt/lobster_docs/关于XXX的通知_20260527_2120.docx
+3. 安全下载规则（硬性）
+每次产出：
+生成 tok（随机）+ 6位 pwd（展示给用户）
+有效期 300秒
+访问 /dl?tok=xxx：
+无 pwd → 返回极简输入页（一个密码框+提交）
+pwd 错误 ≥3 → 立刻作废 tok
+过期 → 410
+成功开始下载 → 立即作废 tok（一次性）
+同一 tok 绝不二次下载
+4. 安装部署包形态（可拷贝到其他电脑的龙虾上用）
+形态：doc-export/目录（可 zip），放到 ~/.openclaw/workspace/skills/或 ~/.openclaw/skills/。
+目录骨架：
+doc-export/
+ ├─ SKILL.md
+ ├─ server.py
+ ├─ build_docx.py
+ ├─ requirements.txt
+ ├─ config.yaml.example
+ ├─ install.sh
+ └─ assets/
+    └─ red_header_bar.png   （你们单位的红头条透明PNG，安装时校验存在）
+install.sh 必须交互收集并写入 config.yaml：
+监听端口（默认 10091）
+内网基址 http://192.168.31.101:10091
+外网基址 http://81.68.248.64:10091
+本地存盘目录（默认 /opt/lobster_docs）
+检查：python3 / pip3 / soffice --version / fc-list :lang=zh；缺则提示安装命令但不强行阻断（允许离线环境）
+SKILL.md 触发写法（按 OpenClaw 的 SKILL.md 范式）
+---
+name: doc-export
+description: 将对话内容导出为符合公文版式的 Word(.docx) 并生成PDF；提供内网/外网一次性下载链接（6位密码，5分钟有效），同时给出本地存盘路径便于主机拷贝。
+---
+
+# 公文导出技能（doc-export）
+
+## 触发条件
+当用户明确表示“生成/输出/导出/下发文档/公文下载链接”时使用本技能；否则不要主动拦截普通对话。
+
+## 执行流程（你/龙虾按步骤做）
+1. 向用户收集最小字段（或从上文归纳）：
+   - 标题（必填）
+   - 正文（必填）
+   - 发文字号（可选）
+   - 主送机关（可选）
+   - 成文日期（默认今天）
+   - 附件清单（可选）
+2. 调用脚本 `{baseDir}/build_docx.py` 生成 .docx（红头条PNG钉入页眉；页边距/字体/首行缩进按配置）
+3. 若配置允许PDF：调用 `soffice --headless --convert-to pdf --outdir ... xxx.docx`
+4. 启动/确保 `{baseDir}/server.py` 监听配置端口
+5. 回显：
+   - **内网链接（完整URL，可点击）**
+   - **外网链接（完整URL，可点击）**
+   - **本地路径（纯文本，提示去主机拷贝）**
+   - 显示一次性 6 位密码与剩余有效期
