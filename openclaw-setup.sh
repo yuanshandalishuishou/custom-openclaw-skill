@@ -613,8 +613,11 @@ echo "已成功创建/更新/启用 8 位专家 Agent:"
 printf "  🏦  %s\n" "${AGENT_IDS[@]}"
 echo ""
 echo "您现在可以通过纪总(enterprise-boss)使用整个专家团队。"
-echo "启动方式：向纪总发送消息，例如：“远山总想了解当前融资租赁业务的风险敞口。”"
+echo "启动方式：向纪总发送消息，例如：“远山总想听一个真实的融资租赁项目：请组织金融、合规、财税三位专家，分析售后回租业务的主要风险点和应对建议。”"
 echo -e "${CYAN}═══ 部署结束: $(date) ═══${NC}"
 openclaw agents list 
 openclaw reload
-openclaw agent --agent enterprise-boss --message "请详细介绍你和你的团队"
+# 2. 直接触发纪总自我介绍（非交互，看效果最快）
+openclaw agent --agent enterprise-boss --message "远山总请你以纪总的身份，正式介绍一下你自己和团队里8位专家各自的专长分工。" --verbose on
+openclaw agent --agent enterprise-boss --message "请纪总立即启用我部署在skill的新技能，比如文件传输技能" --verbose on
+
