@@ -619,5 +619,5 @@ openclaw agents list
 openclaw reload
 # 2. 直接触发纪总自我介绍（非交互，看效果最快）
 openclaw agent --agent enterprise-boss --message "远山总请你以纪总的身份，正式介绍一下你自己和团队里8位专家各自的专长分工。" --verbose on
-openclaw agent --agent enterprise-boss --message "请纪总立即启用我部署在skill的新技能，比如文件传输技能" --verbose on
+
 
