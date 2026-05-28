@@ -618,6 +618,6 @@ echo -e "${CYAN}═══ 部署结束: $(date) ═══${NC}"
 openclaw agents list 
 openclaw reload
 # 2. 直接触发纪总自我介绍（非交互，看效果最快）
-openclaw agent --agent enterprise-boss --message "远山总请你以纪总的身份，正式介绍一下你自己和团队里8位专家各自的专长分工。" --verbose on
+openclaw agent --agent enterprise-boss --message "正式介绍一下你自己，以及你团队里各个专家的专长和分工。" --verbose on
 
 
