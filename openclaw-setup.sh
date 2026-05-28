@@ -51,13 +51,20 @@ info "OpenClaw 版本: $openclaw_version"
 # 检查并安装 jq (JSON解析工具)
 if ! command -v jq &> /dev/null; then
     info "正在安装 jq 依赖..."
-    sudo apt update -qq && sudo apt install jq -y -qq || {
-        err "jq 安装失败，请手动安装后重试。"
-        exit 1
-    }
+    if command -v sudo &> /dev/null; then
+        sudo apt update -qq 2>/dev/null && sudo apt install jq -y -qq 2>/dev/null || {
+            warn "jq 自动安装失败，请手动执行: sudo apt install jq -y"
+            warn "部分功能可能受限，继续执行..."
+        }
+    else
+        warn "未检测到 sudo，跳过 jq 安装（部分功能可能受限）"
+    fi
 fi
-command -v jq &> /dev/null || { err "jq 未安装，退出。"; exit 1; }
-ok "jq 就绪: $(jq --version)"
+if command -v jq &> /dev/null; then
+    ok "jq 就绪: $(jq --version)"
+else
+    warn "jq 未安装，JSON 解析功能不可用，Agent 状态检测将降级"
+fi
 
 # ------------------------------ 目录结构 ------------------------------
 OPENCLAW_BASE="${HOME:-$HOME}/.openclaw"
@@ -619,5 +626,9 @@ openclaw agents list
 openclaw reload
 # 2. 直接触发纪总自我介绍（非交互，看效果最快）
 openclaw agent --agent enterprise-boss --message "正式介绍一下你自己，以及你团队里各个专家的专长和分工。" --verbose on
+echo ""
+# 安全地执行收尾操作（不阻塞主流程）
+openclaw agents list 2>/dev/null || true
+openclaw reload 2>/dev/null || true
 
 
