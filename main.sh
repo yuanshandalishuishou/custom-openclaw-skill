@@ -46,6 +46,7 @@ if command -v openclaw &> /dev/null; then
     log_info "当前版本: $(openclaw --version 2>&1 | head -1)"
     log_info "检查更新..."
     openclaw update status 2>/dev/null || true
+    openclaw gateway restart    
 else
     log_warn "openclaw 命令未找到，跳过更新"
 fi
